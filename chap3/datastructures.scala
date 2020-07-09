@@ -64,6 +64,110 @@ object List {
         }
         go(ls, Nil: List[A])
     }
+
+    //NOT stack-safe
+    def foldRight[A,B](as: List[A], z:B)(f: (A,B)=>B): B = {
+        as match {
+            case Nil => z
+            case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+        }
+    }
+
+    def sum2(ns: List[Int]) =
+        foldRight(ns, 0)((x,y) => x+y)
+    
+    def product2(ns: List[Double]) =
+        foldRight(ns, 1.0)(_*_)
+
+    def length[A](as: List[A]): Int =
+        foldRight(as, 0)((x,y)=>1+y)
+    
+    //stack-safe
+    @annotation.tailrec
+    def foldLeft[A,B](as: List[A], z: B)(f: (B,A)=>B): B = {
+        as match {
+            case Nil => z
+            case Cons(x, xs) => foldLeft(xs, f(z,x))(f)
+        }
+    }
+
+    def sum3(ns: List[Int]) =
+        foldLeft(ns, 0)((x,y) => x+y)
+    
+    def product3(ns: List[Double]) =
+        foldLeft(ns, 1.0)(_*_)
+
+    def length3[A](as: List[A]): Int =
+        foldLeft(as, 0)((x,y)=>x+1)
+
+    def reverse[A](as: List[A]): List[A] = {
+        foldLeft(as, Nil:List[A])((x,y) => Cons(y,x))
+    }
+    
+    def append3[A](a1: List[A], a2: List[A]): List[A] =
+        foldLeft(reverse(a1), a2)((x,y) => Cons(y,x))
+    
+    def makeOneList[A](lls: List[List[A]]): List[A] = {
+        foldLeft(lls, Nil:List[A])(append3)
+    }
+
+    def addOne(ls: List[Int]): List[Int] = {
+        ls match {
+            case Nil => Nil
+            case Cons(x,xs) => Cons(x+1, addOne(xs))
+        }
+    }
+
+    def dbbToStr(ls: List[Double]): List[String] = {
+        ls match {
+            case Nil=>Nil
+            case Cons(x, xs) => Cons(x.toString, dbbToStr(xs))
+        }
+    }
+
+    def map[A,B](as: List[A])(f: A=>B): List[B] = {
+        as match {
+            case Nil => Nil
+            case Cons(x, xs) => Cons(f(x), map(xs)(f))
+        }
+    }
+
+    def filter[A](as: List[A])(f: A=>Boolean): List[A] = {
+        as match {
+            case Nil => Nil
+            case Cons(x, xs) if f(x) => Cons(x, filter(xs)(f))
+            case Cons(x, xs) => filter(xs)(f)
+        }
+    }
+
+    def flatMap[A,B](as: List[A])(f: A => List[B]): List[B] = {
+        as match {
+            case Nil => Nil
+            case Cons(x, xs) => append3(f(x), flatMap(xs)(f))
+        }
+    }
+
+    def filterUsingFlatMap[A](as: List[A])(f: A=>Boolean): List[A] = {
+        flatMap(as)(a => if (f(a)) List(a) else Nil)
+    }
+
+    def addEach(a1 : List[Int], a2: List[Int]): List[Int] = {
+        (a1, a2) match {
+            case (Nil, Nil) => Nil
+            case (Cons(_, _), Nil) => Nil
+            case (Nil, Cons(_, _)) => Nil
+            case (Cons(x, xs), Cons(y, ys)) => Cons(x+y, addEach(xs, ys))
+        }
+    }
+
+    def zipWith[A](a1: List[A], a2: List[A])(f: (A,A) => A) : List[A] = {
+        (a1, a2) match {
+            case (Nil, Nil) => Nil
+            case (Cons(_, _), Nil) => Nil
+            case (Nil, Cons(_, _)) => Nil
+            case (Cons(x, xs), Cons(y, ys)) => Cons(f(x,y), zipWith(xs, ys)(f))
+        }
+    }
 }
 
 
@@ -101,4 +205,28 @@ List.dropWhile(ex1)((x:Double) => (x==8.0))
 
 List.init(exApply)
 
-//~3.3
+// exercise3.8
+List.foldRight(List(1,2,3), Nil:List[Int])(Cons(_,_)) //res0: List[Int] = Cons(1,Cons(2,Cons(3,Nil)))
+
+List.length(List(1,2,3,4,5))
+List.length(ex3)
+
+List.foldLeft(List(1,2,3,4),0)(_+_)
+List.sum3(List(1,2,3,4))
+List.product3(List(1,2,3,4))
+List.length3(List(1,2,3,4))
+
+List.reverse(List(1,2,3,4))
+List.append3(List(1,2,3,4), List(5,6,7,8))
+List.makeOneList(List(List(1,2,3,4),List(5,6,7,8),List(9,10)))
+
+
+List.addOne(List(1,2,3,4))
+List.dbbToStr(List(1.0,2.35,3.456,4.1111))
+List.map(List(1,2,3,4))(_+2)
+List.filter(List(1,2,3,4,5,6,7,8,9))(x=>((x%2)==0))
+List.flatMap(List(1,2,3))(i=>List(i,i))
+List.filterUsingFlatMap(List(1,2,3,4,5,6,7,8,9))(x=>((x%2)==0))
+List.addEach(List(1,2,3), List(4,5,6))
+List.zipWith(List(1,2,3), List(4,5,6))(_*_)
+List.zipWith(List(1,2,3), List(4,5))(_*_)
