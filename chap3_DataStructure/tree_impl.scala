@@ -65,7 +65,7 @@ object Tree {
     }
 }
 
-
+//with REPL
 val exStrTree: Tree[String] = Branch(Branch(Leaf("a"), Leaf("b")), Branch(Leaf("c"), Leaf("d")))
 val exIntTree: Tree[Int] = Branch(Branch(Leaf(1), Leaf(5)), Branch(Leaf(4), Leaf(2)))
 val exIntTree2: Tree[Int] = Branch(Branch(Leaf(1), Leaf(5)), Branch(Branch(Leaf(4),Leaf(8)), Leaf(2)))
